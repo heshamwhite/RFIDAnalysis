@@ -1,0 +1,2 @@
+module DayTrafficsHelper
+end
