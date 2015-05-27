@@ -3,5 +3,7 @@ class UserDurationsController < ApplicationController
   end
 
   def list
+    @userDurations = UserDuration.all
+    render json: @userDurations
   end
 end

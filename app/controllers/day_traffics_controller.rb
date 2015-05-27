@@ -3,5 +3,7 @@ class DayTrafficsController < ApplicationController
   end
 
   def list
+    @dayTraffics = DayTraffic.all
+    render json: @dayTraffics
   end
 end
