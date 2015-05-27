@@ -39,3 +39,106 @@
     </div>
 
 </div>
+
+<script type="text/javascript" charset="utf-8">
+
+	$(document).ready(function(){
+
+		drawUserTrafficGraph();
+
+    });
+
+	function drawUserTrafficGraph(categories, series)
+	{
+		$('#data_view').highcharts({
+
+			// Chart options.
+			chart:
+			{
+				type: 'column'
+			},
+
+			// Chart Title.
+			title:
+			{
+				text: 'Employees Total Traffic'
+			},
+
+			// X-axis options.
+			xAxis:
+			{
+				// Enter the user names here.
+				categories: ['Apples', 'Oranges', 'Pears', 'Grapes', 'Bananas']
+			},
+
+			// Y-Axis options.
+			yAxis:
+			{
+				min: 0,
+				title:
+				{
+					text: 'Number of Arrivals/Departures'
+				},
+				stackLabels:
+				{
+					enabled: true,
+					style:
+					{
+						fontWeight: 'bold',
+						color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+					}
+				}
+			},
+
+			legend:
+			{
+				align: 'right',
+				x: -30,
+				verticalAlign: 'top',
+				y: 25,
+				floating: true,
+				backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+				borderColor: '#CCC',
+				borderWidth: 1,
+				shadow: false
+			},
+
+			tooltip:
+			{
+				formatter: function ()
+				{
+					return '<b>' + this.x + '</b><br/>' +
+					       this.series.name + ': ' + this.y + '<br/>' +
+					       'Total: ' + this.point.stackTotal;
+				}
+			},
+
+			plotOptions:
+			{
+				column: {
+					stacking: 'normal',
+					dataLabels: {
+						enabled: true,
+						color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+						style: {
+							textShadow: '0 0 3px black'
+						}
+					}
+				}
+			},
+
+			series:
+			[
+				{
+					name: 'Arrivals',
+					data: [5, 3, 4, 7, 2]
+				},
+				{
+					name: 'Departures',
+					data: [2, 2, 3, 2, 1]
+				}
+			]
+		});
+	}
+
+</script>
