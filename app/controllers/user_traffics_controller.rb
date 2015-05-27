@@ -3,5 +3,7 @@ class UserTrafficsController < ApplicationController
   end
 
   def list
+    @userTraffics = UserTraffic.all
+    render json: @userTraffics
   end
 end
