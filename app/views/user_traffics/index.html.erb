@@ -10,29 +10,46 @@
 			<div class="panel panel-primary">
 
 				<div class="panel-heading">
-				    <h3 class="panel-title">Panel title</h3>
+				    <h3 class="panel-title">Query Builder</h3>
 				</div>
 
 				<div class="panel-body">
 				    <form>
-				        
 				        <div class="form-group">
 				            <label for="">Select User</label>
-				            <select class="form-control">
-				                <option value="">TEST</option>
-				                <option value="">TEST</option>
-				                <option value="">TEST</option>
-				                <option value="">TEST</option>
-				            </select>
+				            <select id="user_list" class="form-control"></select>
 				        </div>
-				      
+
+				        <div class="pull-right">
+				            <div class="btn-group-lg" role="group" aria-label="...">
+				                <button id="table_button" type="button" class="btn btn-warning">
+				                    <span class="fa fa-table"></span>
+				                </button>
+				                <button id="graph_button" type="button" class="btn btn-success">
+				                    <span class="fa fa-bar-chart-o"></span>
+				                </button>
+				            </div>
+				        </div>
+
 				    </form>
 				</div>
 
 			</div>
         </div>
 
-        <div id="data_view" class="col-sm-9">
+        <div class="col-sm-9">
+
+            <div id="table_view" style="display: none">
+				<table class="table table-striped">
+				    <tr>
+				        <th class="text-center">User Identity</th>
+				        <th class="text-center">Number of Arrivals</th>
+				        <th class="text-center">Number of Departures</th>
+				    </tr>
+				</table>
+            </div>
+
+            <div id="data_view"></div>
 
         </div>
 
@@ -42,10 +59,94 @@
 
 <script type="text/javascript" charset="utf-8">
 
-	$(document).ready(function(){
+	var categories = [];
+	var series = [];
 
-		drawUserTrafficGraph();
+	$(document).ready(function()
+    {
 
+	    $("#table_button").click(function(){
+		    $('#data_view').hide();
+		    $('#table_view').show();
+	    });
+
+	    $("#graph_button").click(function(){
+		    $('#table_view').hide();
+		    $('#data_view').show();
+	    });
+
+		var userList = $("#user_list");
+
+		var arrivalObject = {
+			name: 'Arrivals',
+			data: []
+		};
+		var departureObject = {
+			name: 'Departures',
+			data: []
+		};
+
+		$.ajax({
+			url: 'user_traffics/list',
+			method: 'GET',
+			success: function(data)
+			{
+				// Add the all users option to the user list.
+				userList.append("<option value='All Users'>All Users</option>");
+
+				// Add the data received in the arrays for the graph.
+				for (var i in data)
+				{
+					// Add name in the categories for the X-Axis.
+					categories.push(data[i].name);
+
+					// Add the user names as option in the select input.
+					userList.append("<option value='"+data[i].name+"'>"+data[i].name+"</option>");
+
+					arrivalObject.data.push(data[i].arrival_traffic);
+					departureObject.data.push(data[i].departure_traffic);
+				}
+
+				// Add the data of the series to their corresponding objects
+				series.push(arrivalObject);
+				series.push(departureObject);
+
+				// Get all the users and print the graph.
+				drawUserTrafficGraph(categories,series);
+
+				// Attach listener to the user list.
+				userList.change(function()
+                {
+					var value = userList.val();
+
+					if(value == 'All Users')
+						drawUserTrafficGraph(categories,series);
+					else
+					{
+						for(var i in data)
+						{
+							if(data[i].name == value)
+							{
+								var cat = [value];
+								var ser = [
+									{
+										name: 'Arrival',
+										data: [data[i].arrival_traffic]
+									},
+									{
+										name: 'Departure',
+										data: [data[i].departure_traffic]
+									}
+								];
+
+								// Draw the Graph using the names and the data.
+								drawUserTrafficGraph(cat,ser);
+							}
+						}
+					}
+				});
+			}
+		});
     });
 
 	function drawUserTrafficGraph(categories, series)
@@ -67,8 +168,14 @@
 			// X-axis options.
 			xAxis:
 			{
+				min: 0,
+				max: 10,
 				// Enter the user names here.
-				categories: ['Apples', 'Oranges', 'Pears', 'Grapes', 'Bananas']
+				categories: categories
+			},
+
+			scrollbar: {
+				enabled: true
 			},
 
 			// Y-Axis options.
@@ -127,17 +234,7 @@
 				}
 			},
 
-			series:
-			[
-				{
-					name: 'Arrivals',
-					data: [5, 3, 4, 7, 2]
-				},
-				{
-					name: 'Departures',
-					data: [2, 2, 3, 2, 1]
-				}
-			]
+			series: series
 		});
 	}
 

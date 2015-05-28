@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+
 	get 'user_traffics/index'
 
 	get 'user_traffics/list'

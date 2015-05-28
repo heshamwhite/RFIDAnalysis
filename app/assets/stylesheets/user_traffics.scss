@@ -7,7 +7,7 @@
 
 }
 
-#controls_view::after
+#data_view::before
 {
 	content: '';
   	height: 100%;
@@ -15,5 +15,10 @@
   	background: #d7e4ed;
   	position: absolute;
   	top: 0px;
-  	left: 100%;
+  	left: 0px;
+}
+
+#data_view
+{
+  	height: 700px;
 }
