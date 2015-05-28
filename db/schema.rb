@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150526141110) do
+ActiveRecord::Schema.define(version: 20150527120036) do
 
   create_table "day_traffics", force: :cascade do |t|
     t.date     "traffic_date"
@@ -35,6 +35,12 @@ ActiveRecord::Schema.define(version: 20150526141110) do
     t.integer  "departure_traffic", limit: 4
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string   "name",       limit: 255
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
   end
 
 end
