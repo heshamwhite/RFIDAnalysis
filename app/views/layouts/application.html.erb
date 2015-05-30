@@ -2,6 +2,17 @@
 <html>
 <head>
   <title>RFIDAnalysis</title>
+
+  <ul class="nav navbar-nav main-nav">
+    <li><a href="<%= user_traffics_index_path %>">User Arrivals/Departures</a></li>
+    <li><a href="<%= day_traffics_index_path %>">Total Arrivals/Departures per Day</a></li>
+    <li><a href="<%= user_durations_index_path %>">User Total Hours per Day</a></li>
+  </ul>
+
+  <ul class="nav navbar-nav navbar-right">
+    <li><span class="navbar-text">Developed by Bishoy, Hesham and Omar</span></li>
+  </ul>
+
   <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
   <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
   <%= csrf_meta_tags %>
@@ -11,19 +22,7 @@
 <%= nav_bar fixed: :top, brand: "RFID Analysis", responsive: true do %>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-
-        <ul class="nav navbar-nav main-nav">
-            <li><a href="<%= root_path %>">User Arrivals/Departures</a></li>
-            <li><a href="<%= day_traffics_index_path %>">Total Arrivals/Departures per Day</a></li>
-            <li><a href="<%= user_durations_index_path %>">User Total Hours per Day</a></li>
-        </ul>
-
-        <ul class="nav navbar-nav navbar-right">
-            <li><span class="navbar-text">Developed by Bishoy, Hesham and Omar</span></li>
-        </ul>
-
-    </div><!-- /.navbar-collapse -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1"></div><!-- /.navbar-collapse -->
 
 <% end %>
 

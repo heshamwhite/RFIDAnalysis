@@ -1,2 +1,291 @@
-<h1>UserDurations#index</h1>
-<p>Find me in app/views/user_durations/index.html.erb</p>
+
+<div class="container-fluid">
+
+  <div class="row">
+    <h1 class="page-header text-center"><span class="fa fa-arrows-v"></span> User Durations</h1>
+  </div>
+
+  <div id="main_content" class="row">
+
+    <div id="controls_view" class="col-sm-3">
+      <div class="panel panel-primary">
+
+        <div class="panel-heading">
+          <h3 class="panel-title">Query Builder</h3>
+        </div>
+
+        <div class="panel-body">
+          <form>
+            <div class="form-group">
+              <label for="">Select User</label>
+              <select id="user_list" class="form-control"></select>
+
+              <label for="">Select Start Date</label>
+              <input type="date" name="date" id="startdate" value="2012-01-01" />
+
+              <label for="">Select End Date</label>
+              <input type="date" name="date" id="enddate" value="2015-06-01" />
+
+
+            </div>
+
+            <div class="pull-right">
+              <div class="btn-group-lg" role="group" aria-label="...">
+                <button id="table_button" type="button" class="btn btn-warning">
+                  <span class="fa fa-table"></span>
+                </button>
+                <button id="graph_button" type="button" class="btn btn-success">
+                  <span class="fa fa-bar-chart-o"></span>
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="container2" class="col-sm-9">
+
+      <div id="table_view2" style="display: none">
+        <table id="table_view_content" class="table table-striped">
+          <tr>
+            <th class="text-center">User Identity</th>
+            <th class="text-center">Date</th>
+            <th class="text-center">Duration spent at the Facility</th>
+          </tr>
+        </table>
+      </div>
+
+      <div id="data_view2"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    //$('.datepicker').datepicker()
+    $('#startdate').datepicker();
+    $('#enddate').datepicker();
+
+    var yourLabels = [];
+
+    var categories = [];
+    var series = [];
+
+    $(document).ready(function()
+    {
+
+        $("#table_button").click(function(){
+            $('#data_view2').hide();
+            $('#table_view2').show();
+            updateStat();
+
+
+        });
+
+        $("#graph_button").click(function(){
+            $('#table_view2').hide();
+            $('#data_view2').show();
+            updateStat();
+        });
+
+        var userList = $("#user_list");
+
+        var arrivalObject = {
+            name: 'User Durations',
+            data: []
+        };
+
+        <%
+               @users.each { |user|
+                        %>
+        userList.append("<option value='<%=user.id%>'><%=user.name%></option>");
+        <%
+
+}
+%>
+
+        $.ajax({
+            url: '/user_durations/list?userid=1&startdate=2012-01-01&enddate=2016-01-01',
+            method: 'GET',
+            success: function(data)
+            {
+                // Add the all users option to the user list.
+                //userList.append("<option value='All Users'>All Users</option>");
+                <%
+                    @users.each { |user|
+                        %>
+                userList.append("<option value='<%=user.id%>'><%=user.name%></option>");
+                <%
+
+            }
+         %>
+                console.log(data);
+                for(var i = 0 ; i<data.length ;i++){
+                    $('#table_view_content').append('<tr class="userrow"><td>' + data[i].name+'</td><td>'+data[i].duration_date + '</td><td>' +  data[i].duration +'</td></tr>');
+                    arrivalObject.data.push(data[i].duration / (1000*60));
+                    yourLabels.push(data[i].duration_date)
+                }
+
+                // Add the data of the series to their corresponding objects
+                series.push(arrivalObject);
+                //series.push(departureObject);
+
+                // Get all the users and print the graph.
+                drawUserTrafficGraph(categories,series);
+
+                // Attach listener to the user list.
+                userList.change(function()
+                {
+                    var value = userList.val();
+                    console.log(data);
+                    updateStat();
+                });
+            }
+        });
+    });
+
+    function drawUserTrafficGraph(categories, series)
+    {
+        $('#data_view2').highcharts({
+
+            // Chart options.
+            chart:
+            {
+                type: 'column'
+            },
+
+            // Chart Title.
+            title:
+            {
+                text: 'Employees\' Durations (in minutes) per day'
+            },
+
+            // X-axis options.
+            xAxis:
+            {
+                labels: {
+                    formatter: function() {
+                        return yourLabels[this.value];
+                    }
+                }
+            },
+
+            scrollbar: {
+                enabled: true
+            },
+
+            // Y-Axis options.
+            yAxis:
+            {
+                min: 0,
+                title:
+                {
+                    text: 'Number of Arrivals/Departures'
+                },
+                stackLabels:
+                {
+                    enabled: true,
+                    style:
+                    {
+                        fontWeight: 'bold',
+                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                    }
+                }
+            },
+
+            legend:
+            {
+                align: 'right',
+                x: -30,
+                verticalAlign: 'top',
+                y: 25,
+                floating: true,
+                backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+                borderColor: '#CCC',
+                borderWidth: 1,
+                shadow: false
+            },
+
+            tooltip:
+            {
+                formatter: function ()
+                {
+                    return '<b>' + this.x + '</b><br/>' +
+                            this.series.name + ': ' + this.y + '<br/>' +
+                            'Total: ' + this.point.stackTotal;
+                }
+            },
+
+            plotOptions:
+            {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true,
+                        color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                        style: {
+                            textShadow: '0 0 3px black'
+                        }
+                    }
+                }
+            },
+
+            series: series
+        });
+    }
+    function updateStat(){
+        var userList = $("#user_list");
+        var selectedUser = userList.val();
+        var selectedStartDate = $("#startdate")[0].value;
+        var selectedEndDate = $("#enddate")[0].value;
+        console.log(selectedStartDate);
+        console.log(selectedEndDate);
+
+        var categories = [];
+        var series = [];
+
+        var arrivalObject = {
+            name: 'Durations',
+            data: []
+        };
+
+
+        $.ajax({
+            url: '/user_durations/list?userid='+selectedUser+'&startdate='+selectedStartDate+'&enddate='+selectedEndDate,
+            method: 'GET',
+            success: function(data)
+            {
+                // Add the all users option to the user list.
+                //userList.append("<option value='All Users'>All Users</option>");
+                $('.userrow').remove();
+                arrivalObject.data = []
+                yourLabels = [];
+                for(var i = 0 ; i<data.length ;i++) {
+                    $('#table_view_content').append('<tr class="userrow"><td>' + data[i].name + '</td><td>' + data[i].duration_date + '</td><td>' + (data[i].duration / (1000 * 60)) + '</td></tr>');
+                    arrivalObject.data.push(data[i].duration / (1000 * 60));
+                    yourLabels.push(data[i].duration_date);
+                }
+                // Add the data of the series to their corresponding objects
+                series.push(arrivalObject);
+                //series.push(departureObject);
+
+                // Get all the users and print the graph.
+                drawUserTrafficGraph(categories,series);
+
+                // Attach listener to the user list.
+                userList.change(function()
+                {
+                    var value = userList.val();
+                    updateStat();
+                });
+            }
+        });
+
+
+    }
+</script>

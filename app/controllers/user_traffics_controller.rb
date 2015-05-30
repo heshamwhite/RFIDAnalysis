@@ -4,7 +4,7 @@ class UserTrafficsController < ApplicationController
   end
 
   def list
-    tempid = 2
+    tempid = params[:userid]
     @user = User.find(tempid)
     @userTraffics = UserTraffic.find_by_name(@user.name)
     render json: @userTraffics

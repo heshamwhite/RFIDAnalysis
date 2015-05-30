@@ -1,2 +1,268 @@
-<h1>DayTraffics#index</h1>
-<p>Find me in app/views/day_traffics/index.html.erb</p>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+
+<div class="container-fluid">
+
+  <div class="row">
+    <h1 class="page-header text-center"><span class="fa fa-arrows-v"></span> User Durations</h1>
+  </div>
+
+  <div id="main_content" class="row">
+
+    <div id="controls_view" class="col-sm-3">
+      <div class="panel panel-primary">
+
+        <div class="panel-heading">
+          <h3 class="panel-title">Query Builder</h3>
+        </div>
+
+        <div class="panel-body">
+          <form>
+            <div class="form-group">
+              <label for="">Select Start Date</label>
+              <input type="date" name="date" id="startdate" value="2012-01-01" />
+
+              <label for="">Select End Date</label>
+              <input type="date" name="date" id="enddate" value="2015-06-01" />
+
+
+            </div>
+
+            <div class="pull-right">
+              <div class="btn-group-lg" role="group" aria-label="...">
+                <button id="table_button" type="button" class="btn btn-warning">
+                  <span class="fa fa-table"></span>
+                </button>
+                <button id="graph_button" type="button" class="btn btn-success">
+                  <span class="fa fa-bar-chart-o"></span>
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="container3" class="col-sm-9">
+
+      <div id="table_view3" style="display: none">
+        <table id="table_view_content" class="table table-striped">
+          <tr>
+            <th class="text-center">User Identity</th>
+            <th class="text-center">Date</th>
+            <th class="text-center">Duration spent at the Facility</th>
+          </tr>
+        </table>
+      </div>
+
+      <div id="data_view3"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script type="text/javascript" charset="utf-8">
+
+  var ready;
+  ready = function() {
+      //$('.datepicker').datepicker()
+      $('#startdate').datepicker();
+      $('#enddate').datepicker();
+
+      var yourLabels = [];
+
+      var categories = [];
+      var series = [];
+
+      $(document).ready(function () {
+
+          $("#table_button").click(function () {
+              $('#data_view3').hide();
+              $('#table_view3').show();
+              updateStat();
+
+
+          });
+
+          $("#graph_button").click(function () {
+              $('#table_view3').hide();
+              $('#data_view3').show();
+              updateStat();
+          });
+
+          var userList = $("#user_list");
+
+          var arrivalObject = {
+              name: 'Arrival Traffics',
+              data: []
+          };
+          var departureObject = {
+              name: 'Departure Traffics',
+              data: []
+          };
+
+
+          $.ajax({
+              url: '/day_traffics/list?startdate=2012-01-01&enddate=2016-01-01',
+              method: 'GET',
+              success: function (data) {
+
+                  for (var i = 0; i < data.length; i++) {
+                      $('#table_view_content').append('<tr class="userrow"><td>' + data[i].traffic_date + '</td><td>' + data[i].arrival_traffic + '</td><td>' + data[i].departure_traffic + '</td></tr>');
+                      arrivalObject.data.push(data[i].arrival_traffic);
+                      departureObject.data.push(data[i].departure_traffic);
+                      yourLabels.push(data[i].traffic_date);
+                  }
+                  // Add the data of the series to their corresponding objects
+                  series.push(arrivalObject);
+                  series.push(departureObject);
+
+                  // Get all the users and print the graph.
+                  drawUserTrafficGraph(categories, series);
+
+                  // Attach listener to the user list.
+                  userList.change(function () {
+                      var value = userList.val();
+
+                      updateStat();
+                  });
+              }
+          });
+      });
+
+      function drawUserTrafficGraph(categories, series) {
+          $('#data_view3').highcharts({
+
+              // Chart options.
+              chart: {
+                  type: 'column'
+              },
+
+              // Chart Title.
+              title: {
+                  text: 'Employees\' Durations (in minutes) per day'
+              },
+
+              // X-axis options.
+              xAxis: {
+                  labels: {
+                      formatter: function () {
+                          return yourLabels[this.value];
+                      }
+                  }
+              },
+
+              scrollbar: {
+                  enabled: true
+              },
+
+              // Y-Axis options.
+              yAxis: {
+                  min: 0,
+                  title: {
+                      text: 'Traffic per Day'
+                  },
+                  stackLabels: {
+                      enabled: true,
+                      style: {
+                          fontWeight: 'bold',
+                          color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                      }
+                  }
+              },
+
+              legend: {
+                  align: 'right',
+                  x: -30,
+                  verticalAlign: 'top',
+                  y: 25,
+                  floating: true,
+                  backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+                  borderColor: '#CCC',
+                  borderWidth: 1,
+                  shadow: false
+              },
+
+              tooltip: {
+                  formatter: function () {
+                      return '<b>' + this.x + '</b><br/>' +
+                              this.series.name + ': ' + this.y + '<br/>' +
+                              'Total: ' + this.point.stackTotal;
+                  }
+              },
+
+              plotOptions: {
+                  column: {
+                      stacking: 'normal',
+                      dataLabels: {
+                          enabled: true,
+                          color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                          style: {
+                              textShadow: '0 0 3px black'
+                          }
+                      }
+                  }
+              },
+
+              series: series
+          });
+      }
+
+      function updateStat() {
+          var userList = $("#user_list");
+          var selectedUser = userList.val();
+          var selectedStartDate = $("#startdate")[0].value;
+          var selectedEndDate = $("#enddate")[0].value;
+
+          var categories = [];
+          var series = [];
+
+          var arrivalObject = {
+              name: 'Durations',
+              data: []
+          };
+          var departureObject = {
+              name: 'Departure Traffics',
+              data: []
+          };
+
+          $.ajax({
+              url: '/day_traffics/list?startdate=' + selectedStartDate + '&enddate=' + selectedEndDate,
+              method: 'GET',
+              success: function (data) {
+                  // Add the all users option to the user list.
+                  //userList.append("<option value='All Users'>All Users</option>");
+                  $('.userrow').remove();
+                  arrivalObject.data = [];
+                  departureObject.data = [];
+                  yourLabels = [];
+                  for (var i = 0; i < data.length; i++) {
+                      $('#table_view_content').append('<tr class="userrow"><td>' + data[i].traffic_date + '</td><td>' + data[i].arrival_traffic + '</td><td>' + data[i].departure_traffic + '</td></tr>');
+                      arrivalObject.data.push(data[i].arrival_traffic);
+                      departureObject.data.push(data[i].departure_traffic);
+                      yourLabels.push(data[i].traffic_date);
+                  }
+                  // Add the data of the series to their corresponding objects
+                  series.push(arrivalObject);
+                  series.push(departureObject);
+
+                  // Get all the users and print the graph.
+                  drawUserTrafficGraph(categories, series);
+
+                  // Attach listener to the user list.
+                  userList.change(function () {
+                      var value = userList.val();
+                      updateStat();
+                  });
+              }
+          });
+
+
+      }
+  }
+        $(document).ready(ready);
+        $(document).on('page:load',ready);
+</script>

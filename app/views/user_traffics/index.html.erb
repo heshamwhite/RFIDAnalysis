@@ -37,10 +37,10 @@
 			</div>
         </div>
 
-        <div class="col-sm-9">
+        <div id="container1" class="col-sm-9">
 
-            <div id="table_view" style="display: none">
-				<table class="table table-striped">
+            <div id="table_view1" style="display: none">
+				<table id="table_view_content" class="table table-striped">
 				    <tr>
 				        <th class="text-center">User Identity</th>
 				        <th class="text-center">Number of Arrivals</th>
@@ -49,7 +49,7 @@
 				</table>
             </div>
 
-            <div id="data_view"></div>
+            <div id="data_view1"></div>
 
         </div>
 
@@ -66,13 +66,17 @@
     {
 
 	    $("#table_button").click(function(){
-		    $('#data_view').hide();
-		    $('#table_view').show();
+		    $('#data_view1').hide();
+		    $('#table_view1').show();
+            updateStat();
+
+
 	    });
 
 	    $("#graph_button").click(function(){
-		    $('#table_view').hide();
-		    $('#data_view').show();
+		    $('#table_view1').hide();
+		    $('#data_view1').show();
+            updateStat();
 	    });
 
 		var userList = $("#user_list");
@@ -86,26 +90,35 @@
 			data: []
 		};
 
+        <%
+               @users.each { |user|
+                        %>
+                    userList.append("<option value='<%=user.id%>'><%=user.name%></option>");
+                        <%
+
+                }
+        %>
+
 		$.ajax({
-			url: 'user_traffics/list',
+			url: '/user_traffics/list?userid=1',
 			method: 'GET',
 			success: function(data)
 			{
 				// Add the all users option to the user list.
-				userList.append("<option value='All Users'>All Users</option>");
+				//userList.append("<option value='All Users'>All Users</option>");
+                <%
+                    @users.each { |user|
+                        %>
+                            userList.append("<option value='<%=user.id%>'><%=user.name%></option>");
+                        <%
 
-				// Add the data received in the arrays for the graph.
-				for (var i in data)
-				{
-					// Add name in the categories for the X-Axis.
-					categories.push(data[i].name);
+                    }
+                 %>
+                console.log(data);
 
-					// Add the user names as option in the select input.
-					userList.append("<option value='"+data[i].name+"'>"+data[i].name+"</option>");
-
-					arrivalObject.data.push(data[i].arrival_traffic);
-					departureObject.data.push(data[i].departure_traffic);
-				}
+                $('#table_view_content').append('<tr class="userrow"><td>' + data.name+'</td><td>'+data.arrival_traffic + '</td><td>' +  data.departure_traffic +'</td></tr>');
+                arrivalObject.data.push(data.arrival_traffic);
+                departureObject.data.push(data.departure_traffic);
 
 				// Add the data of the series to their corresponding objects
 				series.push(arrivalObject);
@@ -131,11 +144,11 @@
 								var ser = [
 									{
 										name: 'Arrival',
-										data: [data[i].arrival_traffic]
+										data: [data.arrival_traffic]
 									},
 									{
 										name: 'Departure',
-										data: [data[i].departure_traffic]
+										data: [data.departure_traffic]
 									}
 								];
 
@@ -151,7 +164,7 @@
 
 	function drawUserTrafficGraph(categories, series)
 	{
-		$('#data_view').highcharts({
+		$('#data_view1').highcharts({
 
 			// Chart options.
 			chart:
@@ -237,5 +250,77 @@
 			series: series
 		});
 	}
+    function updateStat(){
+        var userList = $("#user_list");
+        var selectedUser = userList.val();
 
+        var categories = [];
+        var series = [];
+
+        var arrivalObject = {
+            name: 'Arrivals',
+            data: []
+        };
+        var departureObject = {
+            name: 'Departures',
+            data: []
+        };
+
+
+        $.ajax({
+            url: '/user_traffics/list?userid='+selectedUser,
+            method: 'GET',
+            success: function(data)
+            {
+                // Add the all users option to the user list.
+                //userList.append("<option value='All Users'>All Users</option>");
+                $('.userrow').remove();
+                $('#table_view_content').append('<tr class="userrow"><td>' + data.name+'</td><td>'+data.arrival_traffic + '</td><td>' +  data.departure_traffic +'</td></tr>');
+
+                arrivalObject.data.push(data.arrival_traffic);
+                departureObject.data.push(data.departure_traffic);
+
+                // Add the data of the series to their corresponding objects
+                series.push(arrivalObject);
+                series.push(departureObject);
+
+                // Get all the users and print the graph.
+                drawUserTrafficGraph(categories,series);
+
+                // Attach listener to the user list.
+                userList.change(function()
+                {
+                    var value = userList.val();
+
+                    if(value == 'All Users')
+                        drawUserTrafficGraph(categories,series);
+                    else
+                    {
+                        for(var i in data)
+                        {
+                            if(data[i].name == value)
+                            {
+                                var cat = [value];
+                                var ser = [
+                                    {
+                                        name: 'Arrival',
+                                        data: [data.arrival_traffic]
+                                    },
+                                    {
+                                        name: 'Departure',
+                                        data: [data.departure_traffic]
+                                    }
+                                ];
+
+                                // Draw the Graph using the names and the data.
+                                drawUserTrafficGraph(cat,ser);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+
+    }
 </script>
